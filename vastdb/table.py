@@ -419,6 +419,52 @@ class Table:
 
         return pa.RecordBatchReader.from_batches(query_data_request.response_schema, batches_iterator())
 
+    def select_with_splits(self, columns=None, predicate=None, config=None, split_id=None):
+        if config is None:
+            config = QueryConfig()
+
+        if columns is None:
+            columns = [f.name for f in self.arrow_schema]
+
+        query_schema = self.arrow_schema
+        if split_id is not None:
+            config.num_splits = 1
+
+        query_data_request = _internal.build_query_data_request(
+            schema=query_schema,
+            predicate=predicate,
+            field_names=columns)
+
+        split_state = SelectSplitState(query_data_request=query_data_request,
+                                    table=self,
+                                    split_id=split_id,
+                                    config=config)
+
+        record_batches_queue = queue.Queue()
+        stop_event = Event()
+
+        def check_stop():
+            if stop_event.is_set():
+                raise Exception("Stopped")
+
+        endpoints_cycle = itertools.cycle(config.data_endpoints)
+
+        def process_split():
+            endpoint = next(endpoints_cycle)
+            with self.tx._rpc.api.with_endpoint(endpoint) as host_api:
+                split_state.process_split(host_api, record_batches_queue, check_stop)
+
+        process_split()
+
+        batches = []
+        while not record_batches_queue.empty():
+            batch = record_batches_queue.get()
+            if batch is not None:
+                batches.append(batch)
+        
+        return pa.RecordBatchReader.from_batches(query_data_request.response_schema, batches)
+
+
     def insert_in_column_batches(self, rows: pa.RecordBatch):
         """Split the RecordBatch into max_columns that can be inserted in single RPC.
 
