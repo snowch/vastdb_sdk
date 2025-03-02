@@ -424,6 +424,21 @@ class Table:
         if config is None:
             config = QueryConfig()
 
+        # Retrieve snapshots only if needed
+        if config.data_endpoints is None or config.num_splits is None:
+            stats = self.get_stats()
+            log.debug("stats: %s", stats)
+
+        if config.data_endpoints is None:
+            endpoints = stats.endpoints
+        else:
+            endpoints = tuple(config.data_endpoints)
+        log.debug("endpoints: %s", endpoints)
+
+        if config.num_splits is None:
+            config.num_splits = max(1, stats.num_rows // config.rows_per_split)
+        log.debug("config: %s", config)
+
         if columns is None:
             columns = [f.name for f in self.arrow_schema]
 
@@ -448,7 +463,7 @@ class Table:
             if stop_event.is_set():
                 raise Exception("Stopped")
 
-        endpoints_cycle = itertools.cycle(config.data_endpoints)
+        endpoints_cycle = itertools.cycle(endpoints)
 
         def process_split():
             endpoint = next(endpoints_cycle)
