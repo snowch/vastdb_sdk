@@ -260,7 +260,10 @@ class TableInTransaction(ITable):
 
     @property
     def _internal_rowid_field(self) -> pa.Field:
-        return INTERNAL_ROW_ID_SORTED_FIELD if self._is_sorted_table else INTERNAL_ROW_ID_FIELD
+        return (INTERNAL_ROW_ID_SORTED_FIELD
+                if (self._metadata.table_type is TableType.Elysium
+                    or self.vector_index is not None)
+                else INTERNAL_ROW_ID_FIELD)
 
     def sorted_columns(self) -> list[pa.Field]:
         """Return sorted columns' metadata."""

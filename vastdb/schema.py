@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import pyarrow as pa
 
-from vastdb.table_metadata import TableMetadata, TableRef, TableType
+from vastdb.table_metadata import TableMetadata, TableRef
 
 from . import bucket, errors, schema, table
 from ._ibis_support import validate_ibis_support_schema
@@ -179,8 +179,8 @@ def _parse_table_info(table_info, schema: "schema.Schema"):
                    schema=schema.name,
                    table=table_info.name)
 
-    table_type = TableType.Elysium if table_info.sorting_key_enabled else TableType.Regular
-    table_metadata = TableMetadata(ref, table_type=table_type)
+    table_metadata = TableMetadata(ref)
+    table_metadata.load(schema.tx)
 
     return table.Table(handle=int(table_info.handle),
                        metadata=table_metadata,
