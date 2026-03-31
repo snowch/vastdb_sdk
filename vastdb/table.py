@@ -713,7 +713,7 @@ class TableInTransaction(ITable):
         columns_names = [field.name for field in rows.schema]
         # Sorted columns must be in the first insert as those can't be updated later.
         if self._is_sorted_table:
-            sorted_columns_names = [field.name for field in self.sorted_columns()]
+            sorted_columns_names = [field.name for field in self._metadata.sorted_columns]
             columns_names = sorted_columns_names + [column_name for column_name in columns_names if column_name not in sorted_columns_names]
         columns = [rows.schema.field(column_name) for column_name in columns_names]
 

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.14.1] (2026-04-12)
+[2.0.14.1]: https://github.com/vast-data/vastdb_sdk/compare/v2.0.14...v2.0.14.1
+ 
+### Changed
+- using new `adbc-driver-vastdb` package
+
 ## [2.0.14] (2026-02-24)
 [2.0.14]: https://github.com/vast-data/vastdb_sdk/compare/v2.0.13...v2.0.14
 

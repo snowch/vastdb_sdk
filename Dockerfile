@@ -14,4 +14,7 @@ RUN pip3 install -r requirements-dev.txt
 
 WORKDIR /work
 COPY . .
+# installing adbc-driver-vastdb until ORION-353260
+RUN pip3 install adbc-driver-vastdb --index-url https://pypi.org/simple --trusted-host pypi.org
+RUN pip3 install -e "."
 RUN scripts/build.sh

@@ -4,10 +4,10 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+from vastdb import errors
 from vastdb._adbc import _ibis_to_qe_predicates
 from vastdb._internal import VectorIndex, VectorIndexSpec
 from vastdb._table_interface import IbisPredicate
-from vastdb.conftest import SessionFactory
 from vastdb.table_metadata import TableMetadata, TableRef, TableType
 
 DIM = 8
@@ -77,9 +77,7 @@ def into_arrow_arrays(data: list[dict]) -> list[list]:
     return [v for v in agg.values()]
 
 
-def test_sanity(session_factory: SessionFactory, clean_bucket_name: str):
-    session = session_factory(with_adbc=True)
-
+def test_sanity(session, clean_bucket_name: str):
     arrow_schema = pa.schema([('id', pa.int32()), ('n1', pa.int32(
     )), ('n2', pa.int32()), (vector_column_name, VectorColumnArrowType),])
 
@@ -112,9 +110,7 @@ def test_sanity(session_factory: SessionFactory, clean_bucket_name: str):
         assert set([v.as_py() for v in result_table['n1']]) == {1, 2, 3}
 
 
-def test_with_predicates(session_factory: SessionFactory, clean_bucket_name: str):
-    session = session_factory(with_adbc=True)
-
+def test_with_predicates(session, clean_bucket_name: str):
     vector_column_name = 'vector_column'
     arrow_schema = pa.schema([('id', pa.int32()), ('n1', pa.int32(
     )), ('n2', pa.int32()), (vector_column_name, VectorColumnArrowType),])
@@ -163,12 +159,12 @@ def test_ibis_to_query_engine_predicates(ibis_predicate: IbisPredicate, expected
     assert _ibis_to_qe_predicates(ibis_predicate) == expected
 
 
-@pytest.mark.skip(reason="see https://vastdata.atlassian.net/browse/ORION-307908")
-def test_with_predicates_get_vector_index_properties_from_server(
-    session_factory: SessionFactory,
-    clean_bucket_name: str
-    ):
-    session = session_factory(with_adbc=True)
+def test_with_predicates_get_vector_index_properties_from_server(session,
+                                                                 clean_bucket_name: str):
+    try:
+        session.features.check_vector()
+    except errors.NotSupportedVersion:
+        pytest.skip("Vector index is not supported on this vast server version")
 
     vector_column_name = 'vector_column'
     vector_index_distance_metric = 'l2sq'

@@ -29,7 +29,7 @@ setup(
     name='vastdb',
     python_requires='>=3.10.0',
     description='VAST Data SDK',
-    version='2.0.14' + suffix,
+    version='2.0.14.1' + suffix,
     url='https://github.com/vast-data/vastdb_sdk',
     author='VAST DATA',
     author_email='hello@vastdata.com',
@@ -38,6 +38,9 @@ setup(
     install_requires=Path('requirements.txt').read_text().strip().split(),
     long_description=long_description,
     long_description_content_type='text/markdown',
+    extras_require={
+        'adbc': ['adbc-driver-vastdb~=0.0.25']
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: Apache Software License',
